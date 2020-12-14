@@ -14,20 +14,21 @@ namespace JsonLoaderCSTest
 
             var minus_man = new Converter("-201");
 
-            var float_man = new Converter("8.1");
+            var float_man = new Converter("89.9091");
 
             var minus_float = new Converter("-3.5");
+            return;
         }
 
         [TestMethod]
-        public void ConvertErrorMinus() {
+        public void ConvertMinus_Invalid_Pos() {
             try
             {
-                var err_minus = new Converter("599-8");
+                var err_pos_minus = new Converter("599-8");
             }
             catch (InvalidSyntaxException)
             {
-                System.Console.WriteLine("InvalidSyntaxException( minus )が正常に発生しました。");
+                System.Console.WriteLine("InvalidSyntaxException( ConvertMinus_Invalid_Pos )が正常に発生しました。");
                 return;
             }
             catch (Exception e)
@@ -36,18 +37,18 @@ namespace JsonLoaderCSTest
                     string.Format($@"Unexpected exception of type {e.GetType()} caught: {e.Message}")
                     );
             }
-            Assert.Fail("InvalidSyntaxException( minus )が発生しませんでした。");
+            Assert.Fail("InvalidSyntaxException( ConvertMinus_Invalid_Pos )が発生しませんでした。");
         }
 
         [TestMethod]
-        public void ConvertErrorFloat() {
+        public void ConvertFloat_Invalid_Pos() {
             try
             {
-                var err_float = new Converter(".5998");
+                var err_pos_float = new Converter(".5998");
             }
             catch (InvalidSyntaxException)
             {
-                System.Console.WriteLine("InvalidSyntaxException( float )が正常に発生しました。");
+                System.Console.WriteLine("InvalidSyntaxException( ConvertFloat_Invalid_Pos )が正常に発生しました。");
                 return;
             }
             catch (Exception e)
@@ -56,7 +57,48 @@ namespace JsonLoaderCSTest
                     string.Format($@"Unexpected exception of type {e.GetType()} caught: {e.Message}")
                     );
             }
-            Assert.Fail("InvalidSyntaxException( float )が発生しませんでした。");
+            Assert.Fail("InvalidSyntaxException( ConvertFloat_Invalid_Pos )が発生しませんでした。");
+        }
+
+        [TestMethod]
+        public void ConvertMinus_Many_Exist() {
+            try
+            {
+                var err_exist_minus = new Converter("-59-98");
+            }
+            catch (InvalidSyntaxException)
+            {
+                System.Console.WriteLine("InvalidSyntaxException( ConvertMinus_Many_Exist )が正常に発生しました。");
+                return;
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(
+                    string.Format($@"Unexpected exception of type {e.GetType()} caught: {e.Message}")
+                    );
+            }
+            Assert.Fail("InvalidSyntaxException( ConvertMinus_Many_Exist )が発生しませんでした。");
+        }
+
+        [TestMethod]
+        public void ConvertFloat_Many_Exist()
+        {
+            try
+            {
+                var err_exist_float = new Converter("59..98");
+            }
+            catch (InvalidSyntaxException)
+            {
+                System.Console.WriteLine("InvalidSyntaxException( ConvertFloat_Many_Exist )が正常に発生しました。");
+                return;
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(
+                    string.Format($@"Unexpected exception of type {e.GetType()} caught: {e.Message}")
+                    );
+            }
+            Assert.Fail("InvalidSyntaxException( ConvertFloat_Many_Exist )が発生しませんでした。");
         }
     }
 }
