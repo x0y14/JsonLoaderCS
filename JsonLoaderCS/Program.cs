@@ -7,7 +7,7 @@ namespace JsonLoader
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("Hello, StringNumConverter!");
+            Console.WriteLine("Hello, StringNumConverter v0.1!");
         }
     }
 }
