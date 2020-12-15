@@ -1,28 +1,10 @@
-﻿using System;
-using static System.Math;
-using static System.Convert;
+﻿using static JsonLoaderCS.Errors;
 
 namespace StringNumConverter
 {
-    public class InvalidSyntaxException : Exception
-    {
-        public InvalidSyntaxException(String message) : base(message)
-        { }
-
-        public InvalidSyntaxException(String message, Exception inner) : base(message, inner) { }
-    }
-
-    public class InvalidParamaterExeception : Exception                                                 
-    {                                                                                               
-        public InvalidParamaterExeception(String message) : base(message)                               
-        { }                                                                                         
-                                                                                                
-        public InvalidParamaterExeception(String message, Exception inner) : base(message, inner) { }   
-    }                                                                                               
-
     public class Converter
     {
-        private string Origin { get; }
+        private string Original { get; }
         private int Pos { get; set; }
         private static string Target { get; set; }
         
@@ -33,7 +15,7 @@ namespace StringNumConverter
 
         public Converter(string data)
         {
-            Origin = data;
+            Original = data;
             Pos = 0;
             Target = data;
             // マイナスが含まれていたら削除する。
@@ -76,16 +58,9 @@ namespace StringNumConverter
             return s.Length - s.Replace(c, "").Length;
         }
 
-        public void Main()
-        {
-            ShowState();
-            //var head = GetChar();
-            Console.WriteLine(Calc());
-        }
-
         private void ShowState()
         {
-            System.Console.WriteLine($@"Inputed: {Origin}");
+            System.Console.WriteLine($@"Inputed: {Original}");
             System.Console.WriteLine($@"Edited: {Target}");
             System.Console.WriteLine($@"Pos: {Pos}");
             System.Console.WriteLine($@"Minus: {Minus}");
@@ -135,20 +110,19 @@ namespace StringNumConverter
             throw new InvalidParamaterExeception("Exchange Param:n must be in 1234567890");
         }
         
-        private double Calc()
+        public double Calc()
         {
             double result = 0;
             while (Is_Eof() == false)
             {
                 var c = ConsumeChar();
                 var numNum = Exchange(c);
-                Console.WriteLine($@"Get: { numNum }, P: 10^{DecimalPoint - Pos}");
+                // Console.WriteLine($@"Get: { numNum }, P: 10^{DecimalPoint - Pos}");
                 if (numNum != 0)
                 { 
                     var ruijo = System.Math.Pow(10, DecimalPoint - Pos);       
                     // Console.WriteLine($@"Calc: { numNum } * {ruijo}");
                     var r = System.Convert.ToDouble(numNum) * ruijo;
-                    Console.WriteLine(r);
                     result += r;
                 }
             }

@@ -1,15 +1,17 @@
 ﻿using System;
+using System.ComponentModel;
 using StringNumConverter;
+using JsonParser;
 
-namespace JsonLoader
+namespace JsonLoaderCS
 {
-    class Program
+    static class Program
     {
         public static void Main(string[] args)
         {
             Console.WriteLine("Hello, StringNumConverter v0.1!");
-            var con = new Converter("111");
-            con.Main();
+            _ = new StringNumConverter.Converter("111").Calc();
+            _ = new JsonParser.JsonParser("{\"key\":12344}").Parse();
         }
     }
 }

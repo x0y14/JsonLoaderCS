@@ -1,6 +1,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using StringNumConverter;
+using static JsonLoaderCS.Errors;
 
 namespace JsonLoaderCSTest
 {
@@ -99,6 +100,22 @@ namespace JsonLoaderCSTest
                     );
             }
             Assert.Fail("InvalidSyntaxException( ConvertFloat_Many_Exist )が発生しませんでした。");
+        }
+
+        [TestMethod]
+        public void ConvertCorrect()
+        {
+            var c1 = new Converter("123").Calc();
+            Assert.AreEqual(Convert.ToDouble(123), c1);
+            
+            var c2 = new Converter("3.1415").Calc();
+            Assert.AreEqual(Convert.ToDouble(3.1415), c2);
+            
+            var c3 = new Converter("-12").Calc();
+            Assert.AreEqual(Convert.ToDouble(-12), c3);
+            
+            var c4 = new Converter("-1089892389.2").Calc();       
+            Assert.AreEqual(Convert.ToDouble(-1089892389.2), c4); 
         }
     }
 }
