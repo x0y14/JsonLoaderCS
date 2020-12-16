@@ -134,7 +134,7 @@ namespace JsonParser
             }
             
             // bool
-            else if ("tf".Contains(GetChar()))
+            else if ("tfn".Contains(GetChar()))
             {
                 var data = ConsumeWhile(EndValue);
                 // Console.WriteLine($@": Found Value: (Bool) {data}");
@@ -142,7 +142,10 @@ namespace JsonParser
                 {
                     case "true": return true;
                     case "false": return false;
+                    case "null": return null;
                 }
+
+                throw new InvalidOperationException("json-keyword only.");
             }
             
             else if (GetChar() == "{")
