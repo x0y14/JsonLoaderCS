@@ -29,6 +29,12 @@ namespace JsonParser
         private string GetChar() {
             return Original.Substring(Pos, 1);
         }
+        
+        private string GetBeforeChar() {
+            // Consumeした後に実行されるので、~ ~ ~ ~ \\ \" ?
+            // ?から数えて二個前がスラッシュになる。ゆえにPos-2
+            return Original.Substring(Pos-2, 1);
+        }
 
         private string ConsumeChar() {
             var c = GetChar();
@@ -67,9 +73,15 @@ namespace JsonParser
             {
                 var c = ConsumeChar();
                 // result += c;
+                
                 if (c == goal)
                 {
-                    return result;
+                    if (GetBeforeChar() != "\\")
+                    {
+                        return result;
+                    }
+                    // Console.WriteLine($@"found slash item: \{c}");
+                    // 汚いから描き直したいね。
                 }
 
                 result += c;
@@ -103,12 +115,34 @@ namespace JsonParser
             EndValue.Add("]");
 
             ConsumeWhiteSpace();
+            
+            // int
             if ("1234567890-".Contains(GetChar()))
             {
-                var num = ConsumeWhile(EndValue);
-                return ("int", num);
+                var data = ConsumeWhile(EndValue);
+                return ("int", data);
             }
             
+            // string
+            else if (GetChar() == "\"")
+            {
+                ConsumeChar();
+                var data = Goto("\"");
+                ConsumeChar();
+                return ("string", data);
+            }
+            
+            // bool
+            else if ("tf".Contains(GetChar()))
+            {
+                var data = ConsumeWhile(EndValue);
+                switch (data)
+                {
+                    case "true": return ("bool", "true");
+                    case "false": return ("bool", "false");
+                }
+            }
+
             return ("s", "s");
         }
 
@@ -126,7 +160,7 @@ namespace JsonParser
                     ConsumeChar();
                     var key = Goto("\"");
                     // ConsumeChar();
-                    Console.WriteLine(key);
+                    // Console.WriteLine(key);
                     // Console.WriteLine(GetChar());
                     // return "";
                     ConsumeWhiteSpace();
@@ -134,9 +168,9 @@ namespace JsonParser
 
                 if (GetChar() == ":") { ConsumeChar(); }
                 
-                Console.WriteLine($@"Just value analyze: {GetChar()}");
+                // Console.WriteLine($@"Just value analyze: {GetChar()}");
                 var value = AnalyzeValue();
-                Console.WriteLine($@"Value: {value}");
+                // Console.WriteLine($@"Value: {value}");
                 
                 return "";
             }
