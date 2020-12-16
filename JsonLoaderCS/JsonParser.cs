@@ -30,7 +30,11 @@ namespace JsonParser
             return Original.Substring(Pos, 1);
         }
         
-        private string GetBeforeChar() {
+        private string Get1BeforeChar() {
+            return Original.Substring(Pos-1, 1);
+        }
+        
+        private string Get2BeforeChar() {
             // Consumeした後に実行されるので、~ ~ ~ ~ \\ \" ?
             // ?から数えて二個前がスラッシュになる。ゆえにPos-2
             return Original.Substring(Pos-2, 1);
@@ -62,7 +66,6 @@ namespace JsonParser
             }
         }
         
-
         private string Goto(string goal)
         // 真上に行く。
         // 超えたほうがいいのかな。
@@ -76,7 +79,7 @@ namespace JsonParser
                 
                 if (c == goal)
                 {
-                    if (GetBeforeChar() != "\\")
+                    if (Get2BeforeChar() != "\\")
                     {
                         return result;
                     }
@@ -95,6 +98,7 @@ namespace JsonParser
             var result = "";
             while (Is_Eof() == false)
             {
+                // Console.WriteLine($@"[ConsumeWhile] Scan: {GetChar()}");
                 if (targets.Contains(GetChar()))
                 {
                     return result;
@@ -105,22 +109,20 @@ namespace JsonParser
 
             throw new NotFoundException("targets was not found.");
         }
+        
 
-        private (string, string) AnalyzeValue()
+        // private (string, string) AnalyzeValue()
+        private dynamic AnalyzeValue()
+
         {
-            List<string> EndValue = new List<string>();
-            EndValue.Add(",");
-            EndValue.Add(" ");
-            EndValue.Add("}");
-            EndValue.Add("]");
-
+            var EndValue = new List<string> {",", " ", "}", "]"};
             ConsumeWhiteSpace();
             
             // int
             if ("1234567890-".Contains(GetChar()))
             {
                 var data = ConsumeWhile(EndValue);
-                return ("int", data);
+                return new StringNumConverter.Converter(data).Calc();
             }
             
             // string
@@ -128,54 +130,125 @@ namespace JsonParser
             {
                 ConsumeChar();
                 var data = Goto("\"");
-                ConsumeChar();
-                return ("string", data);
+                return data.ToString();
             }
             
             // bool
             else if ("tf".Contains(GetChar()))
             {
                 var data = ConsumeWhile(EndValue);
+                // Console.WriteLine($@": Found Value: (Bool) {data}");
                 switch (data)
                 {
-                    case "true": return ("bool", "true");
-                    case "false": return ("bool", "false");
+                    case "true": return true;
+                    case "false": return false;
                 }
             }
+            
+            else if (GetChar() == "{")
+            {
+                var data = Parse();
+                return data;
+            }
+            
+            else if (GetChar() == "[")
+            {
+                var vals = new List<dynamic>();
+                ConsumeChar();
+                while (Is_Eof() == false)
+                {
+                    // Console.WriteLine(GetChar());
+                    ConsumeWhiteSpace();
+                    var v = AnalyzeValue();
+                    vals.Add(v);
+                    ConsumeWhiteSpace();
+                    
+                    // Console.WriteLine(GetChar());
+                    
+                    if (",}".Contains(GetChar()))
+                    {
+                        ConsumeChar();
+                        continue;
+                    }
+                    
+                    if (GetChar() == "]")
+                    {
+                        ConsumeChar();
+                        return vals;
+                    }
+                    else
+                    {
+                        throw new NotFoundException($"Unpack Object: {GetChar()}");
+                    }
 
-            return ("s", "s");
+                }
+            }
+            // return "Unknown";
+            throw new NotFoundException($@"Unpack Object: {GetChar()}");
         }
+        
 
-        public string Parse()
+        public Dictionary<string, dynamic> Parse()
         {
-            // System.Console.WriteLine($@"Get({Pos}): {GetChar()}");
+            var result = new Dictionary<string, dynamic>();
+            
             while (Is_Eof() == false)
             {
                 if (GetChar() == "{") { ConsumeChar(); }
+                //Console.WriteLine("Found {");
                 
                 ConsumeWhiteSpace();
 
+                if (GetChar() == "}")
+                {
+                    //Console.WriteLine("Found } (e1)");
+                    return result;
+                }
+
+                var key = "";
+                
                 if (GetChar() == "\"")
                 {
                     ConsumeChar();
-                    var key = Goto("\"");
-                    // ConsumeChar();
-                    // Console.WriteLine(key);
-                    // Console.WriteLine(GetChar());
-                    // return "";
+                    key = Goto("\"");
+                    //Console.WriteLine(key);
                     ConsumeWhiteSpace();
+                }
+                
+                else if ("1234567890".Contains(GetChar()))
+                {
+                    var EndValue = new List<string> {" ", ":"};
+                    // { 123 : "value" }
+                    key = ConsumeWhile(EndValue);
                 }
 
                 if (GetChar() == ":") { ConsumeChar(); }
-                
-                // Console.WriteLine($@"Just value analyze: {GetChar()}");
                 var value = AnalyzeValue();
-                // Console.WriteLine($@"Value: {value}");
+                if (key == "") { throw new InvalidParamaterExeception("Key is Empty."); }
+                result[key] = value;
+                // ConsumeWhiteSpace();
+                // Console.WriteLine($@"[{key}] {Original.Length} in {Pos}");
+                if (GetChar() == ",")
+                {
+                    // one more this loop.
+                    ConsumeChar();
+                    continue;
+                }
+                if (GetChar() == "}")
+                {
+                    //Console.WriteLine("Found } (e2)");
+                    ConsumeChar();
+                    return result;
+                }
                 
-                return "";
+                // if (Get1BeforeChar() == "}")
+                // {
+                //     return result;
+                // }
+                //Console.WriteLine("[warn] maybe found ',' , one more looping.");
             }
-            
-            return "";
+            //Console.WriteLine("[pls check code.]");
+            return result;
         }
         
     }
