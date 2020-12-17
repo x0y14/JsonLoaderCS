@@ -1,4 +1,6 @@
-﻿using static JsonLoaderCS.Errors;
+﻿using System;
+using JsonLoaderCS;
+using static JsonLoaderCS.Errors;
 
 namespace StringNumConverter
 {
@@ -16,6 +18,7 @@ namespace StringNumConverter
         public Converter(string data)
         {
             Original = data;
+            // Console.WriteLine($"Converter inputted : {Original}");
             Pos = 0;
             Target = data;
             // マイナスが含まれていたら削除する。
@@ -39,8 +42,22 @@ namespace StringNumConverter
             if (Target.Contains("."))
             {
                 var dp = Target.IndexOf(".");
-                if (dp == 0) { throw new InvalidSyntaxException("Decimal_Point must not be on the head of string."); }
-                if (CountOf(Target, ".") != 1) { throw new InvalidSyntaxException("Decimal_Point must not exist more than one."); }
+                
+                if (dp == 0)
+                {
+                    var e = Errors.ErrorMessageMaker("Decimal_Point must not be on the head of string.",
+                        "StringNumConverter", "Converter",GetNears(),
+                        Original.Length, Pos);
+                    throw new InvalidSyntaxException(e);
+                }
+
+                if (CountOf(Target, ".") != 1)
+                {
+                    var e = Errors.ErrorMessageMaker("Decimal_Point must not exist more than one.",
+                        "StringNumConverter", "Converter",GetNears(),
+                        Original.Length, Pos);
+                    throw new InvalidSyntaxException(e);
+                }
                 
                 Target = Target.Replace(".", "");
                 DecimalPoint = dp;
@@ -82,7 +99,23 @@ namespace StringNumConverter
         private string GetChar() {
             return Target.Substring(Pos, 1);
         }
+        
+        private (string, string, string) GetNears()
+        {
+            var str1 = "";
+            try { str1 = Original.Substring(Pos-5, 4); }
+            catch (Exception e) { }
 
+            var str2 = "";
+            str2 = GetChar();
+
+            var str3 = "";
+            try { str3 = Original.Substring(Pos, 5); }
+            catch (Exception e) { }
+
+            return (str1, str2, str3);
+        }
+        
         private string ConsumeChar() {
             var c = GetChar();
             Pos++;
@@ -107,7 +140,7 @@ namespace StringNumConverter
                     case "0": return 0;
                 }
             }
-            throw new InvalidParamaterExeception("Exchange Param:n must be in 1234567890");
+            throw new InvalidParamaterException($"{n} >> Exchange Param:n must be in 1234567890");
         }
         
         public double Calc()

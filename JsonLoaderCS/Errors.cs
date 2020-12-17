@@ -11,20 +11,25 @@ namespace JsonLoaderCS
             public InvalidSyntaxException(String message, Exception inner) : base(message, inner) { }
         }
 
-        public class InvalidParamaterExeception : Exception                                                 
-        {                                                                                               
-            public InvalidParamaterExeception(String message) : base(message)                               
+        public class InvalidParamaterException : Exception                                                 
+        {
+            public InvalidParamaterException(String message) : base(message)
             { }                                                                                         
                                                                                                 
-            public InvalidParamaterExeception(String message, Exception inner) : base(message, inner) { }   
+            public InvalidParamaterException(String message, Exception inner) : base(message, inner) { }   
         }
         
         public class NotFoundException : Exception                                                 
-        {                                                                                               
-            public NotFoundException(String message) : base(message)                               
+        {
+            public NotFoundException(string message) : base(message)
             { }                                                                                         
                                                                                                 
-            public NotFoundException(String message, Exception inner) : base(message, inner) { }   
+            public NotFoundException(string message, Exception inner) : base(message, inner) { }   
+        }
+
+        public static string ErrorMessageMaker(string message, string filename, string method, (string, string, string) nears, int lenght, int pos)
+        {
+            return $" < {filename}::{method} >({pos} / {lenght}) => {nears}\n| {message}";
         }
     }
 }

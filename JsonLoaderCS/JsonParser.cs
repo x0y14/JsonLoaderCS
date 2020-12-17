@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using JsonLoaderCS;
 using StringNumConverter;
 using static JsonLoaderCS.Errors;
 
@@ -30,8 +31,20 @@ namespace JsonParser
             return Original.Substring(Pos, 1);
         }
         
-        private string Get1BeforeChar() {
-            return Original.Substring(Pos-1, 1);
+        private (string, string, string) GetNears()
+        {
+            var str1 = "";
+            try { str1 = Original.Substring(Pos-5, 4); }
+            catch (Exception e) { }
+
+            var str2 = "";
+            str2 = GetChar();
+
+            var str3 = "";
+            try { str3 = Original.Substring(Pos, 5); }
+            catch (Exception e) { }
+
+            return (str1, str2, str3);
         }
         
         private string Get2BeforeChar() {
@@ -45,17 +58,16 @@ namespace JsonParser
             Pos++;
             return c;
         }
-
-        // private string GetNextChar()
-        // {
-        //     return Original.Substring(Pos+1, 1);
-        // }
-
+        
         private void ConsumeWhiteSpace()
         {
             while (Is_Eof() == false)
             {
                 if (String.IsNullOrWhiteSpace(GetChar()))
+                {
+                    ConsumeChar();
+                }
+                else if (GetChar() == "\n")
                 {
                     ConsumeChar();
                 }
@@ -70,7 +82,7 @@ namespace JsonParser
         // 真上に行く。
         // 超えたほうがいいのかな。
         {
-            if (goal.Length != 1) { throw new InvalidParamaterExeception("Goal's Length must be 1"); }
+            if (goal.Length != 1) { throw new InvalidParamaterException("Goal's Length must be 1"); }
             var result = "";
             while (Is_Eof() == false)
             {
@@ -110,19 +122,28 @@ namespace JsonParser
             throw new NotFoundException("targets was not found.");
         }
         
-
-        // private (string, string) AnalyzeValue()
         private dynamic AnalyzeValue()
 
         {
-            var EndValue = new List<string> {",", " ", "}", "]"};
+            var EndValue = new List<string> {",", " ", "}", "]", "\n", "\t"};
             ConsumeWhiteSpace();
             
             // int
             if ("1234567890-".Contains(GetChar()))
             {
+                ConsumeWhiteSpace();
                 var data = ConsumeWhile(EndValue);
-                return new StringNumConverter.Converter(data).Calc();
+                try
+                {
+                    return new StringNumConverter.Converter(data).Calc();
+                }
+                catch (InvalidParamaterException e)
+                {
+                    var e3 = Errors.ErrorMessageMaker(e.Message,
+                        "JsonParser", "AnalyzeValue", GetNears(),
+                        Original.Length, Pos);
+                    throw new InvalidOperationException(e3);
+                }
             }
             
             // string
@@ -130,6 +151,7 @@ namespace JsonParser
             {
                 ConsumeChar();
                 var data = Goto("\"");
+                ConsumeWhiteSpace();
                 return data.ToString();
             }
             
@@ -137,15 +159,18 @@ namespace JsonParser
             else if ("tfn".Contains(GetChar()))
             {
                 var data = ConsumeWhile(EndValue);
-                // Console.WriteLine($@": Found Value: (Bool) {data}");
                 switch (data)
                 {
                     case "true": return true;
                     case "false": return false;
                     case "null": return null;
                 }
+                
+                var e = Errors.ErrorMessageMaker("json-keyword only.",
+                    "JsonParser", "AnalyzeValue",GetNears(),
+                    Original.Length, Pos);
 
-                throw new InvalidOperationException("json-keyword only.");
+                throw new InvalidOperationException(e);
             }
             
             else if (GetChar() == "{")
@@ -160,20 +185,34 @@ namespace JsonParser
                 ConsumeChar();
                 while (Is_Eof() == false)
                 {
-                    // Console.WriteLine(GetChar());
                     ConsumeWhiteSpace();
                     var v = AnalyzeValue();
                     vals.Add(v);
                     ConsumeWhiteSpace();
-                    
-                    // Console.WriteLine(GetChar());
-                    
-                    if (",}".Contains(GetChar()))
+                    // 安定しこう。
+                    // if (",}".Contains(GetChar()))
+                    // {
+                    //     Console.WriteLine(GetNears());
+                    //     ConsumeChar();
+                    //     continue;
+                    // }
+                    // challenge
+                    if (",".Contains(GetChar()))
                     {
                         ConsumeChar();
                         continue;
                     }
-                    
+                    if ("}".Contains(GetChar()))
+                    {
+                        ConsumeChar();
+                        if (",".Contains(GetChar()))
+                        {
+                            ConsumeChar();
+                            return new Dictionary<string, dynamic>();
+                        }
+                        continue;
+                    }
+
                     if (GetChar() == "]")
                     {
                         ConsumeChar();
@@ -181,13 +220,25 @@ namespace JsonParser
                     }
                     else
                     {
-                        throw new NotFoundException($"Unpack Object: {GetChar()}");
+                        var e = Errors.ErrorMessageMaker("Unpack Object",
+                            "JsonParser", "AnalyzeValue",GetNears(),
+                            Original.Length, Pos);
+                        throw new NotFoundException(e);
                     }
 
                 }
             }
-            // return "Unknown";
-            throw new NotFoundException($@"Unpack Object: {GetChar()}");
+
+            if (GetChar() == "]")
+            {
+                Console.WriteLine("[warn] empty list");
+                return new List<dynamic>();
+            }
+
+            var e2 = Errors.ErrorMessageMaker("Unpack Object",
+                "JsonParser", "AnalyzeValue",GetNears(),
+                Original.Length, Pos);
+            throw new NotFoundException(e2);
         }
         
 
@@ -204,7 +255,6 @@ namespace JsonParser
 
                 if (GetChar() == "}")
                 {
-                    //Console.WriteLine("Found } (e1)");
                     return result;
                 }
 
@@ -214,23 +264,27 @@ namespace JsonParser
                 {
                     ConsumeChar();
                     key = Goto("\"");
-                    //Console.WriteLine(key);
                     ConsumeWhiteSpace();
                 }
                 
                 else if ("1234567890".Contains(GetChar()))
                 {
                     var EndValue = new List<string> {" ", ":"};
-                    // { 123 : "value" }
                     key = ConsumeWhile(EndValue);
                 }
 
                 if (GetChar() == ":") { ConsumeChar(); }
                 var value = AnalyzeValue();
-                if (key == "") { throw new InvalidParamaterExeception("Key is Empty."); }
+
+                // Console.WriteLine(value);
+                if (key == "")
+                {
+                    var e = Errors.ErrorMessageMaker("Key is Empty.",
+                        "JsonParser", "Parse",GetNears(),
+                        Original.Length, Pos);
+                    throw new InvalidParamaterException(e);
+                }
                 result[key] = value;
-                // ConsumeWhiteSpace();
-                // Console.WriteLine($@"[{key}] {Original.Length} in {Pos}");
                 if (GetChar() == ",")
                 {
                     // one more this loop.
@@ -239,18 +293,10 @@ namespace JsonParser
                 }
                 if (GetChar() == "}")
                 {
-                    //Console.WriteLine("Found } (e2)");
                     ConsumeChar();
                     return result;
                 }
-                
-                // if (Get1BeforeChar() == "}")
-                // {
-                //     return result;
-                // }
-                //Console.WriteLine("[warn] maybe found ',' , one more looping.");
             }
-            //Console.WriteLine("[pls check code.]");
             return result;
         }
         

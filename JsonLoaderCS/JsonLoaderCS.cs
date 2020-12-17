@@ -17,7 +17,16 @@ namespace JsonLoaderCS
 
         public Dictionary<string, dynamic> Load()
         {
-            Loaded = new JsonParser.JsonParser(JsonData).Parse();
+            try
+            {
+                Loaded = new JsonParser.JsonParser(JsonData).Parse();
+            }
+            catch (Errors.NotFoundException e)
+            {
+                Console.WriteLine(e);
+            }
+
+
             return Loaded;
         }
 
@@ -55,15 +64,16 @@ namespace JsonLoaderCS
             var nest = n;
             // Console.WriteLine("hello, list");
             Console.WriteLine($@"{new String(' ', nest)}[List]");
+            nest += 2;
             foreach (var i in items)
             {
                 if (i is List<dynamic>)
                 {
-                    CheckList(n, i);
+                    CheckList(nest, i);
                 }
                 else if (i is Dictionary<string, dynamic>)
                 {
-                    CheckData(n, i);
+                    CheckData(nest, i);
                 }
                 else
                 {
@@ -77,6 +87,8 @@ namespace JsonLoaderCS
                     }
                 }
             }
+
+            nest -= 2;
         }
 
     }
