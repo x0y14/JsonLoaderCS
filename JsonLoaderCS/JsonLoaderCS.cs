@@ -1,25 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using JsonParser;
 
 namespace JsonLoaderCS
 {
     public class JsonLoaderCS
     {
-        public string JsonData;
-        public readonly double version = 0.9;
+        private readonly string _jsonData;
+        public readonly double Version = 0.9;
         public Dictionary<string, dynamic> Loaded;
 
         public JsonLoaderCS(string json)
         {
-            JsonData = json;
+            _jsonData = json;
         }
 
         public Dictionary<string, dynamic> Load()
         {
             try
             {
-                Loaded = new JsonParser.JsonParser(JsonData).Parse();
+                Loaded = new JsonParser.JsonParser(_jsonData).Parse();
             }
             catch (Errors.NotFoundException e)
             {
@@ -30,15 +32,15 @@ namespace JsonLoaderCS
             return Loaded;
         }
 
-        public void CheckData(int n, Dictionary<string, dynamic> JsonObj)
+        public void CheckData(Dictionary<string, dynamic> jsonObj, int n = 0)
         {
             var nest = n;
-            foreach (var j in JsonObj)
+            foreach (var j in jsonObj)
             {
                 Console.WriteLine($"{new String(' ', nest)}[Dict(KEY): {j.Key}]");
                 if (j.Value is Dictionary<string, dynamic>)
                 {
-                    CheckData(nest+=2, j.Value);
+                    CheckData(j.Value, nest+=2);
                 }
                 else if (j.Value is List<dynamic>)
                 {
@@ -73,7 +75,7 @@ namespace JsonLoaderCS
                 }
                 else if (i is Dictionary<string, dynamic>)
                 {
-                    CheckData(nest, i);
+                    CheckData(i, nest);
                 }
                 else
                 {
@@ -89,6 +91,126 @@ namespace JsonLoaderCS
             }
 
             nest -= 2;
+        }
+        
+        public dynamic Get(string path)
+        {
+            // {"args": { "title": "the world", "items": ["a", "b", { "obj": "str" }], "0": "-1" } }
+                // "args/title" => "the world"
+                // "args/items.1" => "b"
+                // "args/items.2/obj" => "str"
+                // "args/0" => "-1"
+                if (Loaded == null)
+                {
+                    throw new NullReferenceException("Json has not loaded.");
+                }
+
+
+                if (path.Substring(path.Length - 1, 1) == "/")
+                {
+                    path = path.Substring(0, path.Length - 1);
+                }
+
+                string[] pathSplit = path.Split("/");
+                // Console.WriteLine(pathSplit);
+
+                var mapPos = Loaded;
+
+                var subPaths = new List<int>();
+                var subPathsNest = 0;
+                var original_path = "";
+                
+                // path(non including sub-path), now sub-nest, subs
+                // ex: ( "args", 0, [ 0, 1, 1, 0, 1, 2 ]
+
+                foreach (var p in pathSplit)
+                {
+                    // Console.WriteLine(p);
+                    if (p.Contains("."))
+                    {
+                        foreach (string sp in p.Split("."))
+                        {
+                            if (subPathsNest != 0)
+                            {
+                                if (int.TryParse(sp, out var i))
+                                {
+                                    subPaths.Add(i);
+                                }
+                                else
+                                {
+                                    throw new Exception("List Pos is Number only.");
+                                }
+                            }
+                            else
+                            {
+                                original_path = sp;
+                            }
+                            
+                            subPathsNest++;
+                        }
+                    }
+                    
+                    // Console.WriteLine($"[MapPos]: {mapPos[p]}");
+
+                    if (subPaths.Any())
+                    {
+                        var reff = mapPos[original_path];
+                        foreach (var sp in subPaths)
+                        {
+                            // reff.Count
+                            if (sp < 0)
+                            {
+                                var sp_ = reff.Count + sp;
+                                reff = reff[sp_];
+                            }
+                            
+                            // else if (reff.Count < sp)
+                            // {
+                            //     throw new Exception("");
+                            // }
+                            
+                            else
+                            {
+                                reff = reff[sp];
+                            }
+                        }
+
+                        if (reff is not Dictionary<string, dynamic>)
+                        {
+                            return reff;
+                        }
+                        else
+                        {
+                            mapPos = reff;
+                        }
+                    }
+                    
+                    else
+
+                    {
+                        if (mapPos[p] is not Dictionary<string, dynamic>)
+                        {
+                            return mapPos[p];
+                        }
+
+                        mapPos = mapPos[p];
+                    }
+
+
+                    if (mapPos is not Dictionary<string, dynamic>)
+                    {
+                        return mapPos;
+                    }
+
+                    // 初期化
+                    subPaths = new List<int>();
+                    subPathsNest = 0;
+                    original_path = "";
+                }
+                
+                
+
+                return 0;
         }
 
     }
