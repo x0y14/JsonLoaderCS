@@ -111,14 +111,19 @@ namespace JsonLoaderCS
                     path = path.Substring(0, path.Length - 1);
                 }
 
+                if (path == "/" || path == "")
+                {
+                    throw new Exception("give me some paths");
+                }
+
                 string[] pathSplit = path.Split("/");
-                // Console.WriteLine(pathSplit);
 
                 var mapPos = Loaded;
 
                 var subPaths = new List<int>();
                 var subPathsNest = 0;
                 var original_path = "";
+                dynamic result = 0; 
                 
                 // path(non including sub-path), now sub-nest, subs
                 // ex: ( "args", 0, [ 0, 1, 1, 0, 1, 2 ]
@@ -163,26 +168,23 @@ namespace JsonLoaderCS
                                 var sp_ = reff.Count + sp;
                                 reff = reff[sp_];
                             }
-                            
-                            // else if (reff.Count < sp)
-                            // {
-                            //     throw new Exception("");
-                            // }
-                            
                             else
                             {
                                 reff = reff[sp];
                             }
                         }
 
+                        // mapPos = reff;
                         if (reff is not Dictionary<string, dynamic>)
                         {
+                            // Console.WriteLine($"reff : {reff}");
                             return reff;
+                            result = reff;
                         }
-                        else
-                        {
-                            mapPos = reff;
-                        }
+                        // else
+                        // {
+                        mapPos = reff;
+                        // }
                     }
                     
                     else
@@ -210,7 +212,7 @@ namespace JsonLoaderCS
                 
                 
 
-                return 0;
+                return mapPos;
         }
 
     }

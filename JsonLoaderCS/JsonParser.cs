@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JsonLoaderCS;
-using StringNumConverter;
+using String2NumberConverter;
 using static JsonLoaderCS.Errors;
 
 namespace JsonParser
@@ -135,7 +135,7 @@ namespace JsonParser
                 var data = ConsumeWhile(EndValue);
                 try
                 {
-                    return new StringNumConverter.Converter(data).Calc();
+                    return new String2NumberConverter.Converter(data).Calc();
                 }
                 catch (InvalidParamaterException e)
                 {

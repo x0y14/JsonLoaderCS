@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net.Http;
 using System.Threading.Tasks;
-using StringNumConverter;
+using String2NumberConverter;
 using JsonLoaderCS;
 
 namespace JsonLoaderCS
@@ -39,10 +39,8 @@ namespace JsonLoaderCS
             var dict = new JsonLoaderCS(s);
             var map = dict.Load();
             dict.CheckData(dict.Loaded);
-            
-            Console.WriteLine(map["slideshow"]["slides"][1]["items"][0]);
-            Console.WriteLine(dict.Get("slideshow/slides.1/items.0"));
-            // Why <em>WonderWidgets</em> are great
+            Console.WriteLine(
+                dict.Get("slideshow/slides.1/items.0") == map["slideshow"]["slides"][1]["items"][0]);
 
         }
     }

@@ -1,32 +1,31 @@
-﻿using System;
-using JsonLoaderCS;
-using static JsonLoaderCS.Errors;
+using System;
 
-namespace StringNumConverter
+namespace String2NumberConverter
 {
     public class Converter
     {
         private string Original { get; }
         private int Pos { get; set; }
         private static string Target { get; set; }
-        
-        // private char[] Chars { get; set; }
-        private bool Minus { get; set; }
-        private bool Float { get; set; }
-        private int DecimalPoint { get; set; }
+        private bool Minus { get; }
+        private bool Float { get; }
+        private int DecimalPoint { get; }
 
         public Converter(string data)
         {
             Original = data;
-            // Console.WriteLine($"Converter inputted : {Original}");
             Pos = 0;
             Target = data;
-            // マイナスが含まれていたら削除する。
+            
+            // マイナスの有無を確認します。
+            //見つけた場合、削除します。
             if (Target.Contains("-"))
             {
-                var dp = Target.IndexOf("-");
-                if (dp != 0) { throw new InvalidSyntaxException("Minus must be on the head of string."); }
-                if (CountOf(Target, "-") != 1) { throw new InvalidSyntaxException("Minus must not exist more than one."); }
+                // マイナスを含む場合、それは文字列の先頭になければなりません。
+                var dp = Target.IndexOf("-", StringComparison.Ordinal);
+                
+                if (dp != 0) { throw new Exception($"[{Original}] => Minus must be on the head of string."); }
+                if (CountOf(Target, "-") != 1) { throw new Exception($"[{Original}] => Minus must not exist more than one."); }
 
                 Target = Target.Replace("-", "");
                 Minus = true;
@@ -35,28 +34,22 @@ namespace StringNumConverter
             {
                 Minus = false;
             }
-            // 小数点あるのかあったら消す、Decimal_Pointに保存。
-            // これは小数点が置かれる位置が示される。
-            // 8.1 -> 1
-            // 10 -> 2
+            
+            // 小数点を見つけたら、削除します。
+            // Decimal_Pointは、小数点がどこに存在するかを示します。
+            // ex) 8.1 -> 1, 10 -> 2
             if (Target.Contains("."))
             {
-                var dp = Target.IndexOf(".");
+                var dp = Target.IndexOf(".", StringComparison.Ordinal);
                 
                 if (dp == 0)
                 {
-                    var e = Errors.ErrorMessageMaker("Decimal_Point must not be on the head of string.",
-                        "StringNumConverter", "Converter",GetNears(),
-                        Original.Length, Pos);
-                    throw new InvalidSyntaxException(e);
+                    throw new Exception($"[{Original}] => Decimal_Point must not be on the head of string.");
                 }
 
                 if (CountOf(Target, ".") != 1)
                 {
-                    var e = Errors.ErrorMessageMaker("Decimal_Point must not exist more than one.",
-                        "StringNumConverter", "Converter",GetNears(),
-                        Original.Length, Pos);
-                    throw new InvalidSyntaxException(e);
+                    throw new Exception($"[{Original}] => Decimal_Point must not exist more than one.");
                 }
                 
                 Target = Target.Replace(".", "");
@@ -75,6 +68,8 @@ namespace StringNumConverter
             return s.Length - s.Replace(c, "").Length;
         }
 
+        
+        // 確認用
         private void ShowState()
         {
             System.Console.WriteLine($@"Inputed: {Original}");
@@ -98,22 +93,6 @@ namespace StringNumConverter
         
         private string GetChar() {
             return Target.Substring(Pos, 1);
-        }
-        
-        private (string, string, string) GetNears()
-        {
-            var str1 = "";
-            try { str1 = Original.Substring(Pos-5, 4); }
-            catch (Exception e) { }
-
-            var str2 = "";
-            str2 = GetChar();
-
-            var str3 = "";
-            try { str3 = Original.Substring(Pos, 5); }
-            catch (Exception e) { }
-
-            return (str1, str2, str3);
         }
         
         private string ConsumeChar() {
@@ -140,22 +119,20 @@ namespace StringNumConverter
                     case "0": return 0;
                 }
             }
-            throw new InvalidParamaterException($"{n} >> Exchange Param:n must be in 1234567890");
+            throw new Exception($"{n} >> Exchange Param:n must be in 1234567890");
         }
         
-        public double Calc()
+        public decimal Calc()
         {
-            double result = 0;
+            decimal result = 0;
             while (Is_Eof() == false)
             {
                 var c = ConsumeChar();
                 var numNum = Exchange(c);
-                // Console.WriteLine($@"Get: { numNum }, P: 10^{DecimalPoint - Pos}");
                 if (numNum != 0)
                 { 
-                    var ruijo = System.Math.Pow(10, DecimalPoint - Pos);       
-                    // Console.WriteLine($@"Calc: { numNum } * {ruijo}");
-                    var r = System.Convert.ToDouble(numNum) * ruijo;
+                    var ruijo = System.Math.Pow(10, DecimalPoint - Pos);
+                    var r = System.Convert.ToDecimal(numNum) * System.Convert.ToDecimal(ruijo);
                     result += r;
                 }
             }
