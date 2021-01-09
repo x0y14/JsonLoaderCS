@@ -1,8 +1,8 @@
 using System;
 
-namespace String2NumberConverter
+namespace JsonLoader
 {
-    public class Converter
+    public class String2NumberConverter
     {
         private string Original { get; }
         private int Pos { get; set; }
@@ -11,7 +11,7 @@ namespace String2NumberConverter
         private bool Float { get; }
         private int DecimalPoint { get; }
 
-        public Converter(string data)
+        public String2NumberConverter(string data)
         {
             Original = data;
             Pos = 0;

@@ -1,5 +1,5 @@
 using System;
-namespace JsonLoaderCS
+namespace JsonLoader
 {
     public class Errors
     {

@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using JsonLoaderCS;
-using String2NumberConverter;
-using static JsonLoaderCS.Errors;
+using static JsonLoader.Errors;
 
-namespace JsonParser
+namespace JsonLoader
 {
-    public class JsonParser
+    public class Parser
     {
         private int Pos { get; set; }
         private string Original { get; set; }
-
-        public JsonParser(string data)
+        public Parser(string data)
         {
             Pos = 0;
             Original = data;
@@ -35,14 +32,14 @@ namespace JsonParser
         {
             var str1 = "";
             try { str1 = Original.Substring(Pos-5, 4); }
-            catch (Exception e) { }
+            catch (Exception) { }
 
             var str2 = "";
             str2 = GetChar();
 
             var str3 = "";
             try { str3 = Original.Substring(Pos, 5); }
-            catch (Exception e) { }
+            catch (Exception) { }
 
             return (str1, str2, str3);
         }
@@ -135,7 +132,7 @@ namespace JsonParser
                 var data = ConsumeWhile(EndValue);
                 try
                 {
-                    return new String2NumberConverter.Converter(data).Calc();
+                    return new String2NumberConverter(data).Calc();
                 }
                 catch (InvalidParamaterException e)
                 {
@@ -231,7 +228,7 @@ namespace JsonParser
 
             if (GetChar() == "]")
             {
-                Console.WriteLine("[warn] empty list");
+                // Console.WriteLine("[warn] empty list");
                 return new List<dynamic>();
             }
 

@@ -1,18 +1,15 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using JsonParser;
 
-namespace JsonLoaderCS
+namespace JsonLoader
 {
-    public class JsonLoaderCS
+    public class Loader
     {
         private readonly string _jsonData;
-        public readonly double Version = 0.9;
         public Dictionary<string, dynamic> Loaded;
 
-        public JsonLoaderCS(string json)
+        public Loader(string json)
         {
             _jsonData = json;
         }
@@ -21,13 +18,12 @@ namespace JsonLoaderCS
         {
             try
             {
-                Loaded = new JsonParser.JsonParser(_jsonData).Parse();
+                Loaded = new Parser(_jsonData).Parse();
             }
             catch (Errors.NotFoundException e)
             {
                 Console.WriteLine(e);
             }
-
 
             return Loaded;
         }
@@ -64,7 +60,6 @@ namespace JsonLoaderCS
         public void CheckList(int n, List<dynamic> items)
         {
             var nest = n;
-            // Console.WriteLine("hello, list");
             Console.WriteLine($@"{new String(' ', nest)}[List]");
             nest += 2;
             foreach (var i in items)
@@ -125,12 +120,8 @@ namespace JsonLoaderCS
                 var original_path = "";
                 dynamic result = 0; 
                 
-                // path(non including sub-path), now sub-nest, subs
-                // ex: ( "args", 0, [ 0, 1, 1, 0, 1, 2 ]
-
                 foreach (var p in pathSplit)
                 {
-                    // Console.WriteLine(p);
                     if (p.Contains("."))
                     {
                         foreach (string sp in p.Split("."))
@@ -154,15 +145,12 @@ namespace JsonLoaderCS
                             subPathsNest++;
                         }
                     }
-                    
-                    // Console.WriteLine($"[MapPos]: {mapPos[p]}");
 
                     if (subPaths.Any())
                     {
                         var reff = mapPos[original_path];
                         foreach (var sp in subPaths)
                         {
-                            // reff.Count
                             if (sp < 0)
                             {
                                 var sp_ = reff.Count + sp;
@@ -173,18 +161,12 @@ namespace JsonLoaderCS
                                 reff = reff[sp];
                             }
                         }
-
-                        // mapPos = reff;
+                        
                         if (reff is not Dictionary<string, dynamic>)
                         {
-                            // Console.WriteLine($"reff : {reff}");
                             return reff;
-                            result = reff;
                         }
-                        // else
-                        // {
                         mapPos = reff;
-                        // }
                     }
                     
                     else
@@ -209,9 +191,6 @@ namespace JsonLoaderCS
                     subPathsNest = 0;
                     original_path = "";
                 }
-                
-                
-
                 return mapPos;
         }
 

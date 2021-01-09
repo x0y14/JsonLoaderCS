@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <ReleaseVersion>1.0.1</ReleaseVersion>
+        <PackageId>jsonloader</PackageId>
+        <PackageVersion>1.0.1</PackageVersion>
+        <Authors>x0y14</Authors>
+        <Description>A package that reads json in string state and converts it to dictionary type.</Description>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+      <DebugType></DebugType>
+      <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+</Project>

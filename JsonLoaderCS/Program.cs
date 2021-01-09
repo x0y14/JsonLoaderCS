@@ -3,45 +3,22 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net.Http;
 using System.Threading.Tasks;
-using String2NumberConverter;
-using JsonLoaderCS;
+using JsonLoader;
 
 namespace JsonLoaderCS
 {
     internal static class Program
     {
-        private static readonly HttpClient client = new HttpClient();
-        private static async Task<string> GetJson()
-        {
-            // Call asynchronous network methods in a try/catch block to handle exceptions.
-            try	
-            {
-                HttpResponseMessage response = await client.GetAsync("https://httpbin.org/json");
-                response.EnsureSuccessStatusCode();
-                string responseBody = await response.Content.ReadAsStringAsync();
-                // Above three lines can be replaced with new helper method below
-                // string responseBody = await client.GetStringAsync(uri);
-
-                Console.WriteLine(responseBody);
-                return responseBody;
-            }
-            catch(HttpRequestException e)
-            {
-                Console.WriteLine("\nException Caught!");	
-                Console.WriteLine("Message :{0} ",e.Message);
-            }
-            return "";
-        }
         public static void Main(string[] args)
         {
-            var s = GetJson().Result;
-            
-            var dict = new JsonLoaderCS(s);
+            var dict = new JsonLoader.Loader(
+                "{ \"title\": \"test\", \"items\": [ 9999, \"hello\", {\"list\": [ 123 ] } ] }");
             var map = dict.Load();
-            dict.CheckData(dict.Loaded);
             Console.WriteLine(
-                dict.Get("slideshow/slides.1/items.0") == map["slideshow"]["slides"][1]["items"][0]);
-
+                $"{dict.Get("title")} : {dict.Get("title") == map["title"]}, " +
+                $"{dict.Get("items.0")} : {dict.Get("items.0") == map["items"][0]}, " +
+                $"{dict.Get("items.2/list.0")} : {dict.Get("items.2/list.0") == map["items"][2]["list"][0]}"
+            );
         }
     }
 }
