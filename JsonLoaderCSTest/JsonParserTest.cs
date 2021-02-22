@@ -12,17 +12,17 @@ namespace JsonLoaderCSTest
         [TestMethod]
         public void ParserTest()
         {
-            var keyint = new JsonLoader.Loader("{\"key\":12344}").Load();
+            var keyint = new JsonLoader.Loader().LoadStringAsJson("{\"key\":12344}");
             // Assert.AreEqual(("int", "12344"), keyint);
             // Console.WriteLine(keyint);
             
-            var keystring = new JsonLoader.Loader("{\"key\": \"value\"}").Load();
+            var keystring = new JsonLoader.Loader().LoadStringAsJson("{\"key\": \"value\"}");
             // Assert.AreEqual(("string", "value"), keyint);
 
-            var keystringhasdoublequote = new JsonLoader.Loader("{\"key\": \"va\\\"lue\"}").Load();
+            var keystringhasdoublequote = new JsonLoader.Loader().LoadStringAsJson("{\"key\": \"va\\\"lue\"}");
             // Assert.AreEqual(("string", "va\"lue"), keyint);
 
-            var keybool = new JsonLoader.Loader("{\"key\": true}").Load();
+            var keybool = new JsonLoader.Loader().LoadStringAsJson("{\"key\": true}");
             // Assert.AreEqual(("bool", "true"), keyint);
 
         }

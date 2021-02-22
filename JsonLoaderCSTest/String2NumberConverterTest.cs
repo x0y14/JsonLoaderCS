@@ -41,7 +41,6 @@ namespace JsonLoaderCSTest
         [TestMethod]
         public void StressTest10K()
         {
-            var errors = new List<dynamic>();
             var randomer = new System.Random();
             
             for (var i = 0; i < 10000; i++)
@@ -56,8 +55,7 @@ namespace JsonLoaderCSTest
                 Assert.AreEqual(n1, str1);
                 Assert.AreEqual(n2, str2);
                 Assert.AreEqual(n3, str3);
-            }
-            Console.WriteLine($"errors:{errors.Count}");
+            } 
         }
     }
 }
