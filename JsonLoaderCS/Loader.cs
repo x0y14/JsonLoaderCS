@@ -9,7 +9,7 @@ namespace JsonLoader
         private string _jsonData;
         public Dictionary<string, dynamic> Loaded;
 
-        public Loader() {}
+        public Loader() { }
         
         public Dictionary<string, dynamic> LoadStringAsJson(string json)
         {
