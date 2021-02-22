@@ -6,16 +6,14 @@ namespace JsonLoader
 {
     public class Loader
     {
-        private readonly string _jsonData;
+        private string _jsonData;
         public Dictionary<string, dynamic> Loaded;
 
-        public Loader(string json)
+        public Loader() { }
+        
+        public Dictionary<string, dynamic> LoadStringAsJson(string json)
         {
             _jsonData = json;
-        }
-
-        public Dictionary<string, dynamic> Load()
-        {
             try
             {
                 Loaded = new Parser(_jsonData).Parse();
@@ -26,6 +24,12 @@ namespace JsonLoader
             }
 
             return Loaded;
+        }
+
+        public Dictionary<string, dynamic> LoadWithPath(string absolute_path)
+        {
+            _jsonData = System.IO.File.ReadAllText($@"{absolute_path}");
+            return LoadStringAsJson(_jsonData);
         }
 
         public void CheckData(Dictionary<string, dynamic> jsonObj, int n = 0)
